@@ -3,6 +3,8 @@
   <component name="Go" enabled="true" />
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$/../src/github.com/ProtonMail" />
+    <content url="file://$MODULE_DIR$/../src/sandbox" />
     <content url="file://$MODULE_DIR$/../utilities_go-main" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
