@@ -32,8 +32,8 @@ import (
 )
 
 func init() {
-	 //rand.Seed not working
-	 //rand.Seed(time.Now().UnixNano())
+	//rand.Seed not working
+	//rand.Seed(time.Now().UnixNano())
 }
 
 // ========= GENERAL =========
@@ -154,22 +154,8 @@ var key []byte
 /////////////////////
 
 func ParseRsaPublicKeyFromPemStr() (*rsa.PublicKey, error) {
-	var public_key string =
-		`-----BEGIN RSA PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAzDWv5CHdcXXm0/zidDK3
-OskEhr+uulnIjkgyAxHWypif8zb4GQg0UVdfvoADMBPTlrtlLofb7dfex4uoFu+C
-QUKG0MK5upKNH9cqkBwpZ/Mc3iEy5fbCmXYq034eKfBtXIn0ZqKpI88wMCfwzYhg
-oDdrifgnxhQlLq2O+5knVEbspomTrIuk3Wa4c0ISpEG0FTbVAg6d9SZEmQQEJRte
-H6sI6cUVqz/WCpTR2Y+YgOepFR4KrVdIp6P3hUxR0h1T9ta+xZx7IE9i7s/PR7nF
-H+PSRaZdfMje1zV5eP7q9kyyeRGPiUi63Mc/olsifR+7tJWiJk5FuHJZLO3ED8ay
-H8adslQQvZwMI64G2DOK/8bMaxbNYuIaxDiKyHI/yvvjK+PeHijomaX0eed+TaeI
-nd20YLG/UGwntqwOdHCuBllpEHqtiaAW+rkBYt3Mw7DI22/8dFKb63+eC/kUlVQZ
-bMwdwh1itYO3s9zqlsA1mw6q6es6CWKyftN+3ZjRbTZ5zP2fzt4oN2DreqPvQ3N5
-mQol6woaxEqtFvOPhOUgvdZHwcIU8l5KZSThodvkveWfUt4QTCPOhpJhPmvMK2zA
-Yf5Oh4DzwxhQBx1Xm6bWFoZblaYV6UwWRuj6EN9Tztmk7NwQWztXjfbU1QQAaB4c
-Zc6Wn4O42nkRXdypLvTdUasCAwEAAQ==
------END RSA PUBLIC KEY-----
-`
+	var public_key string
+
 	block, _ := pem.Decode([]byte(public_key))
 	if block == nil {
 		return nil, errors.New("failed to parse PEM block containing the key")
