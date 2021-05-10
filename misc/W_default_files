@@ -1,0 +1,71 @@
+Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell
+
+Name		 Type	 Data
+ExecutionPolicy  REG_SZ  Restricted (need RemoteSigned)
+
+Windows 10
+    - Program Files
+    - Program Files (x86)
+    - .ProgramData
+    - .Recovery
+    - Users
+    - Windows
+    - EPM -> To be created ?
+
+Windows 7
+    - PerfLogs
+    - Users
+    - Program Files
+    - Program Files (x86)
+    - EPM -> To be created ?
+
+
+Windows XP
+    - Documents and Settings
+    - Program Files
+    - WINDOWS
+    - EPM -> No powershell
+
+Windows Vista
+    -
+    - EPM ->
+
+Windows Server 2019
+    -
+    - EPM ->
+
+Windows Server 2012 R2
+    -
+    - EPM ->
+
+Windows Server 2008 R2
+    - Perflogs
+    - Program Files
+    - Program Files (x86)
+    - Users
+    - Windows
+    - EPM -> To be created (still execs without it)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,17 +1,17 @@
 
 |Languages|Done/Not Done|
 |---------|-------------|
-|French   |upcoming|
-|English  |upcoming|
-|Georgian |upcoming|
-|Russian  |upcoming|
-|Spanish  |upcoming|
-|Arabic   |upcoming|
-|Turkish  |upcoming|
-|Deutsch  |(Not sure)|
-|Portugal |(Not sure)|
-|Chinese  |(Not sure)|
-|Israeli  |(Not sure)|
-|Korean   |(Not sure)|
-|Polish   |(Not sure)|
-|Ukrainian|(Not sure)|
+|Arabic     |upcoming|
+|English    |upcoming|
+|Spanish    |upcoming|
+|French     |upcoming|
+|Georgian   |upcoming|
+|Russian    |upcoming|
+|Turkish    |upcoming|
+|Chinese    |(Not sure)|
+|Deutsch    |(Not sure)|
+|Israeli    |(Not sure)|
+|Korean     |(Not sure)|
+|Portuguese |(Not sure)|
+|Polish     |(Not sure)|
+|Ukrainian  |(Not sure)|

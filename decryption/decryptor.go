@@ -239,7 +239,7 @@ func decrypt_encryption_key() []byte {
 		log.Fatal(err)
 	}
 
-	fmt.Println(string(content))
+	//fmt.Println(string(content))
 
 	private_key := import_private_key()
 	decrypted_bytes, err := private_key.Decrypt(
