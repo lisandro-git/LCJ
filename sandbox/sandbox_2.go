@@ -1,116 +1,84 @@
 package main
 
 import (
-	"io/ioutil"
-	"log"
+	"archive/zip"
+	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 )
-import "reflect"
-var black = []string{ // lisandro : evaluate symlink
-	"bin",
-	"boot",
-	".cache",
-	"dev",
-	"etc",
-	"initrd.img",
-	"lib",
-	"lib32",
-	"lib64",
-	"libx32",
-	"lost+found",
-	"media",
-	"opt",
-	"proc",
-	"run",
-	"sbin",
-	"srv",
-	"sys",
-	"tmp",
-	"usr",
-	"var",
-	"vmlinuz",
+
+func dir(path string)([]string){
+	searchDir := path
+	fileList := make([]string, 0)
+	e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+		fileList = append(fileList, path)
+		return err
+	})
+
+	if e != nil {
+		panic(e)
+	}
+	return fileList
 }
 
-var white = []string{
-	//"/root/y",
-	"root",
-	"home",
-	"mnt",
-}
+func Unzip(src string, dest string) ([]string, error) {
 
-func IOReadDir2(root string) ([]string) {
-	var files []string
-	fileInfo, err := ioutil.ReadDir(root)
+	var filenames []string
+
+	r, err := zip.OpenReader(src)
 	if err != nil {
-		return files
+		return filenames, err
 	}
-	for _, file := range fileInfo {
-		files = append(files, file.Name())
-	}
-	return files
-}
+	defer r.Close()
 
-func in_array(val interface{}, array interface{}) (bool) {
-	exists := false
-	//index  := -1
+	for _, f := range r.File {
 
-	switch reflect.TypeOf(array).Kind() {
-	case reflect.Slice:
-		s := reflect.ValueOf(array)
+		// Store filename/path for returning and using later on
+		fpath := filepath.Join(dest, f.Name)
 
-		for i := 0; i < s.Len(); i++ {
-			if reflect.DeepEqual(val, s.Index(i).Interface()) == true {
-				//index = i
-				exists = true
-				return exists
-			}
+		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
+		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return filenames, fmt.Errorf("%s: illegal file path", fpath)
+		}
+
+		filenames = append(filenames, fpath)
+
+		if f.FileInfo().IsDir() {
+			// Make Folder
+			os.MkdirAll(fpath, os.ModePerm)
+			continue
+		}
+
+		// Make File
+		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+			return filenames, err
+		}
+
+		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+		if err != nil {
+			return filenames, err
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return filenames, err
+		}
+
+		_, err = io.Copy(outFile, rc)
+
+		// Close the file without defer to close before next iteration of loop
+		outFile.Close()
+		rc.Close()
+
+		if err != nil {
+			return filenames, err
 		}
 	}
-	return exists
+	return filenames, nil
 }
 
-func is_symlink(file string)(bool) {
-	file = "/" + file
-	fi, err := os.Lstat(file)
-	if err != nil{
-		log.Fatal(err)
-	}
-	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
-		return true
-	} else {
-		return false
-	}
+func main()(){
+	Unzip("/root/y/test/hello.jar", "/root/y/test/hello")
 }
-var x []string
-func main() {
-	root_files := IOReadDir2("/")
-	for _, root := range(root_files){
-
-		a := in_array(root, black)
-		if a{
-			//fmt.Println(root, "\t\texist ", b)
-		} else {
-			x = append(x, root)
-		}
-	}
-	for _, dir :=range(x){
-		if !is_symlink(dir){
-
-		}
-	}
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -253,7 +253,7 @@ func decrypt_encryption_key() []byte {
 	return decrypted_bytes
 }
 
-func check_key() {
+func check_key()() {
 	_, err := ioutil.ReadFile("key") //Check to see if a key was already created
 	if err != nil {
 		pass() //If not, create one

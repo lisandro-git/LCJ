@@ -1,33 +1,35 @@
 <h1>Changelog</h1>
 <ul>
-    <li>Added Windows and Linux Whitelist and Blacklist []string variables : they contain files that will be encrypted (whitelist) and saved (blacklist)</li>
-    <li>OS and windows drive detection</li>
-    <li>New GOBL module -> GOlang BuiLder will turn encryptors into executable for Linux and Windows</li>
+    <li>Added version for LCJ</li>
 </ul>
 
 <h3>Encryptor</h3>
 <ul>
-    <li>Changed list_dir function : it can now detect Linux/Windows drives, and return all the files that needs to be returned</li>
-    <li>LCJ does not encrypt default folders in both Linux and Windows</li>
-    <li>LCJ now encrypts everything, except specified extensions (has to be tested)</li>
+    <li>Added Goroutines to the code, so that LCJ can encrypt faster</li>
+    <li>
+        The encryptor won't encrypt if the total file opened is superior to 1Gb.
+        This has been made for scalability
+    </li>
+    <li>
+        If a file size is superior to 150MB, it will encrypt the 150mb first bytes, and append it 
+        to the end of the file
+    </li>
 </ul>
 
 <h3>EPM</h3>
 <ul>
-    <li>No changes done, nothing added, still upcoming</li>
+    <li></li>
 </ul>
 
 <h3>GOBL</h3>
 <ul>
-    <li>New module, changes are to be made</li>
+    <li></li>
 </ul>
 
 <h2>Languages</h2>
 <ul>
-    <li>No changes made</li>
+    <li></li>
 </ul>
-
-
 
 <h2> Upcoming </h2>
 <ul> 
@@ -48,11 +50,12 @@
 <ul>
     <li>Files added</li>
     <ul>
-        <li>exeution_policy_modifier.go</li>
-        <li>golang_modifier.go</li>
+        <li></li>
     </ul>
     <li>Directories added</li>
     <ul>
-        <li>GOBL</li>
+       <li></li>
     </ul>
 </ul>
+
+<H1>Version Number : V1.1</H1>
