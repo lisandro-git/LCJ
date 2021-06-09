@@ -82,7 +82,8 @@ func ParseRsaPublicKeyFromPemStr(pubPEM string) (*rsa.PublicKey, error) {
 }
 
 func main() {
-	for i:=0; i < 10; i++ { // lisandro : after creating a key, replace it in enc/dec, save all the files at once in the new folder
+	// lisandro : after creating a key, replace it in enc/dec, save all the files at once in the new folder
+	for i:=0; i < 10; i++ {
 		if i == 0 {
 			continue
 		}
@@ -131,8 +132,8 @@ func main() {
 			log.Fatalln(err)
 		}
 
-		encryptor_dummy_path := "/root/CODES/go/LCJ/KRAL/dummy/encryptor_dummy.go"
-		decryptor_dummy_path := "/root/CODES/go/LCJ/KRAL/dummy/decryptor_dummy.go"
+		encryptor_dummy_path := "/root/CODES/go/LCJ/KRAM/dummy/encryptor_dummy.go"
+		decryptor_dummy_path := "/root/CODES/go/LCJ/KRAM/dummy/decryptor_dummy.go"
 
 		encryptor, err := ioutil.ReadFile(encryptor_dummy_path)
 		if err != nil {

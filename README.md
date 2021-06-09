@@ -1,19 +1,12 @@
 <h1>Changelog</h1>
 <ul>
-    <li>Added version for LCJ</li>
+    <li>Changed KRAL module name to KRAM module</li>
 </ul>
 
 <h3>Encryptor</h3>
 <ul>
-    <li>Added Goroutines to the code, so that LCJ can encrypt faster</li>
-    <li>
-        The encryptor won't encrypt if the total file opened is superior to 1Gb.
-        This has been made for scalability
-    </li>
-    <li>
-        If a file size is superior to 150MB, it will encrypt the 150mb first bytes, and append it 
-        to the end of the file
-    </li>
+    <li>Changed opened file limit from 1GB to 900MB</li>
+    <li>Changed aes.BlockSize (from 16 to 32)</li>
 </ul>
 
 <h3>EPM</h3>
@@ -58,4 +51,4 @@
     </ul>
 </ul>
 
-<H1>Version Number : V1.1</H1>
+<H1>Version Number : V1.2</H1>
