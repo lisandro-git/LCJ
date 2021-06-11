@@ -200,7 +200,6 @@ func decodeBase64(b, unecrypted_text []byte, above_150MB bool) []byte {
 }
 
 func decrypt(key, text []byte) []byte {
-
 	block, err := aes.NewCipher(key)
 	Error(err)
 
