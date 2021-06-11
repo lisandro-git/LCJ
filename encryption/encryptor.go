@@ -50,7 +50,7 @@ var ext_blacklist = []string{
 	"ini",
 	"img",
 	"xml",
-	"old", // lisandro : do i keep this ?
+	"old",
 	"386",
 	"adv",
 	"ani",
@@ -457,7 +457,7 @@ func get_all_files()([]string){
 			}
 		}
 	}
-	return all_files
+	return all_files;
 }
 
 func get_drives() (r []string){

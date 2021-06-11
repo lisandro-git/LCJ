@@ -1,4 +1,3 @@
-// Package shred is a golang library to mimic the functionality of the linux shred command
 package main
 
 // lisandro : delete all prints
@@ -142,7 +141,7 @@ iW7KF8j6hfL+ae/qvJb5mPZY8dWZBdJCbIrYpRXcTWdP3Sw+jggYxg0+YKAi
 	// Export the newly imported keys
 	//priv_parsed_pem := ExportRsaPrivateKeyAsPemStr(priv_parsed)
 
-	return priv_parsed
+	return priv_parsed;
 }
 
 func decrypt_encryption_key() []byte {

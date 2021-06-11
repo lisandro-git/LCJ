@@ -233,7 +233,7 @@ func encrypt_encryption_key(k []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return encryptedBytes
+	return encryptedBytes;
 }
 
 func rand_str(str_size int) string {

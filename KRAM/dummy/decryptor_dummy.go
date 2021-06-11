@@ -89,7 +89,7 @@ func import_private_key() *rsa.PrivateKey{
 	// Export the newly imported keys
 	//priv_parsed_pem := ExportRsaPrivateKeyAsPemStr(priv_parsed)
 
-	return priv_parsed
+	return priv_parsed;
 }
 
 func decrypt_encryption_key() []byte {
