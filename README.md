@@ -1,6 +1,6 @@
 <h1>Changelog</h1>
 <ul>
-    <li>Changed KRAL module name to KRAM module</li>
+    <li>Added Evasion Module</li>
 </ul>
 
 <h3>Encryptor</h3>
@@ -38,6 +38,23 @@
     <li></li>
 </ul>
 
+<h3>EM (Evasion module)</h3>
+<ul>
+    <li>Sandbox evasion module destined to be used with LCJ (can work for other malware)</li>
+    <li>List of evasion techniques added :
+        <ol>
+            <li>evade_clicks_count</li>
+            <li>evade_screen_size</li>
+            <li>evade_foreground_window</li>
+            <li>evade_foreground_window</li>
+            <li>evade_mac</li>
+            <li>evade_hostname</li>
+        </ol>
+    </li>
+    <li>It might not work on Linux environment because of the loaded dlls, but all the functions work and has been tested numerous time</li>
+
+</ul>
+
 <h2>Languages</h2>
 <ul>
     <li></li>
@@ -45,18 +62,19 @@
 
 <h2> Upcoming </h2>
 <ul> 
-    <li>Evasion Module</li>
+    <li></li>
 </ul>
 <h2>FileLog</h2>
 <ul>
     <li>Directories added</li>
     <ul>
-       <li>executables : will contain the executables some platform</li>
+       <li>EM; automatic; user_action</li>
     </ul>
     <li>Files added</li>
     <ul>
-        <li></li>
+        <li>automatic_action_em.go; user_action_em.go; sandbox_EM.go</li>
+        <li>deleted some useless files</li>
     </ul>
 </ul>
 
-<H1>Version Number : V1.5</H1>
+<H1>Version Number : V1.6</H1>
