@@ -5,60 +5,10 @@ import (
 	"net"
 	"os"
 	"strings"
-	"syscall"
-	"time"
 )
 
 // edode : if a value returns "true", this means that the code is running in a sandbox
 
-var (
-	user32			 = syscall.NewLazyDLL("user32.dll")
-	getSystemMetrics = user32.NewProc("GetSystemMetrics")
-)
-
-func evade_screen_size()(bool) {
-	/*
-		source :
-			- https://stackoverflow.com/a/48187712
-		linked variable :
-			- getSystemMetrics
-		linked functions :
-			-
-	 */
-	index_x := uintptr(0)
-	index_y := uintptr(1)
-	x, _, _ := getSystemMetrics.Call(index_x)
-	y, _, _ := getSystemMetrics.Call(index_y)
-	if x < 1024 || y < 768 {
-		return true;
-	}
-	return false;
-}
-
-func get_window(funcName string) uintptr {
-	proc := user32.NewProc(funcName)
-	hwnd, _, _ := proc.Call()
-	return hwnd
-}
-func evade_foreground_window()(bool){
-	/*
-		source :
-			- https://gist.github.com/obonyojimmy/d6b263212a011ac7682ac738b7fb4c70
-		linked variables :
-			- user32
-		linked functions :
-			- get_window
-	*/
-	var temp uintptr
-	for i := 0; i <= 5; i++ {
-		if hwnd := get_window("GetForegroundWindow") ; hwnd != 0 {
-			if hwnd != temp && temp != 0 { return true }
-			temp = hwnd
-		}
-		time.Sleep(time.Second * 60)
-	}
-	return false;
-}
 
 var sandbox_mac_addresses = []string {
 	"08:00:27", // VMWare
@@ -86,6 +36,7 @@ func get_mac_address() ([]string, error) {
 	}
 	return as, nil
 }
+
 func evade_mac()(bool){
 	/*
 		source :
