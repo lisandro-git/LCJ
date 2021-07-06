@@ -1,4 +1,3 @@
-// Package shred is a golang library to mimic the functionality of the linux shred command
 package main
 
 // lisandro : delete all prints
@@ -147,7 +146,6 @@ func decodeBase64(b, unecrypted_text []byte, above_150MB bool) []byte {
 }
 
 func decrypt(key, text []byte) []byte {
-
 	block, err := aes.NewCipher(key)
 	Error(err)
 

