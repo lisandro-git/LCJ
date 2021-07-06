@@ -1,13 +1,13 @@
 <h1><p style="text-align: center;">GOBL Module</p></h1>
 
-##What is it for ?
+<h2>What is it for</h2>
 The GoLang BuiLder (or GOBL) is intended to be used for the LCJ Ransomware.</br>
 It works after using the KRAM module. While the KRAM module creates encryptors and decryptors 
 containing unique RSA key pairs, GOBL creates executables for Windows, Linux and Darwin based OS.</br>
 
-####To understand how is LCJ supposed to work, please refer to the README contained in the root folder of the project.</br> Moreover, to understand how this module works, refers to the GOBL section of the PDF
+<h4>To understand how is LCJ supposed to work, please refer to the README contained in the root folder of the project.</br> Moreover, to understand how this module works, refers to the GOBL section of the PDF</h4>
 
-##Supported OS
+<h2>Supported OS</h2>
 This code has been made in order to be the less storage-eater possible. We know that most of the people
 uses a 64-bit Windows system, thus, each encryptor and decryptor will have a Windows64 executable. Refer
 to the table below to see the build occurrence of the supported platform, note that it is possible to change
@@ -25,15 +25,13 @@ Due to the fact that this ransomware has been developped in Golang 1.15.6, it is
 build for Darwin arm64 (M1 chip).
 The extension refers to the last 1 or 2 letter/digit of the file. It is intended to differentiate the different OS/ARCH of the executables.
 
-##How to use it
+<h2>How to use it</h2>
 It is as simple as launching the script ! But first, you need to change the variable name **"RW_path"** in the script.
 The path should be the same path has the KRAM module. </br>
 What this script will do is simple : Iterate through all directories and create executables of the files beginning with
 either a 6 (encryptor) or a 9 (decryptor).
 
-
-##Useful links
-
+<h2>Useful links</h2>
 * <a href="https://github.com/lisandro-git/Lets_Cry_of_Joy/tree/main/modules/KRAM">KRAM Module</a>
 * <a href="https://github.com/lisandro-git/Lets_Cry_of_Joy">LCJ</a></br>
 Because this project was a school based project, you can also go to <a href="https://github.com/lisandro-git/Lets_Cry_of_Joy/blob/main/PDFs/Annual_Project.pdf">this link</a>.
